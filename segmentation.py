@@ -1,7 +1,11 @@
+import numpy
 import numpy as np
 import random
-from scipy.spatial.distance import squareform, pdist, cdist
-from skimage.util import img_as_float
+
+from matplotlib import pyplot as plt
+# from scipy.spatial.distance import squareform, pdist, cdist
+# from skimage.util import img_as_float
+
 
 ### Clustering Methods
 def kmeans(features, k, num_iters=100):
@@ -33,13 +37,63 @@ def kmeans(features, k, num_iters=100):
     idxs = np.random.choice(N, size=k, replace=False)
     centers = features[idxs]
     assignments = np.zeros(N, dtype=np.uint32)
-
+    print(centers)
     for n in range(num_iters):
-        ### YOUR CODE HERE
-        pass
-        ### END YOUR CODE
+        new_assignments = get_features_assignments(centers, features)
+        centers = get_new_cluster_centers(features, new_assignments, k)
+        if np.array_equal(new_assignments, assignments):
+            print("Iteration Count: ", n)
+            return assignments
+        for i in range(4):
+            cluster_i = features[new_assignments == i]
+            plt.scatter(cluster_i[:, 0], cluster_i[:, 1])
+
+        plt.axis('equal')
+        plt.show()
+        assignments = new_assignments
 
     return assignments
+
+
+def get_new_cluster_centers(features, features_assignments, no_of_clusters):
+    centers = np.array([])
+
+    for i in range(no_of_clusters):
+        features_in_cluster_i = np.array([])
+        for idx, assign in enumerate(features_assignments):
+            if assign == i:
+                features_in_cluster_i = np.append(features_in_cluster_i, features[idx])
+        centers = np.append(centers, np.average(features_in_cluster_i, axis=0))
+    return centers
+
+
+def get_features_assignments(centers, features) -> np.array:
+    features_assignments = np.array([])
+    for feature in features:
+        center_idx = get_nearest_center_idx(centers, feature)
+        features_assignments = np.append(features_assignments, center_idx)
+    return features_assignments
+
+
+def get_nearest_center_idx(centers, data_point) -> int:
+    if len(centers) == 0:
+        return 0
+    dis_list = []
+    for center in centers:
+        dis_list.append(get_euclidean_dis(center, data_point))
+
+    min_dis = dis_list[0]
+    min_idx = 0
+    for i, dis in enumerate(dis_list):
+        if dis < min_dis:
+            min_dis = dis
+            min_idx = i
+    return min_idx
+
+
+def get_euclidean_dis(center, data_point) -> np.array:
+    return np.linalg.norm(center - data_point)
+
 
 def kmeans_fast(features, k, num_iters=100):
     """ Use kmeans algorithm to group features into k clusters.
@@ -78,7 +132,6 @@ def kmeans_fast(features, k, num_iters=100):
     return assignments
 
 
-
 def hierarchical_clustering(features, k):
     """ Run the hierarchical agglomerative clustering algorithm.
 
@@ -114,8 +167,6 @@ def hierarchical_clustering(features, k):
             (e.g. i-th point is assigned to cluster assignments[i])
     """
 
-
-
     N, D = features.shape
 
     assert N >= k, 'Number of clusters cannot be greater than number of points'
@@ -124,7 +175,6 @@ def hierarchical_clustering(features, k):
     assignments = np.arange(N, dtype=np.uint32)
     centers = np.copy(features)
     n_clusters = N
-    
 
     while n_clusters > k:
         ### YOUR CODE HERE
@@ -146,13 +196,14 @@ def color_features(img):
     """
     H, W, C = img.shape
     img = img_as_float(img)
-    features = np.zeros((H*W, C))
+    features = np.zeros((H * W, C))
 
     ### YOUR CODE HERE
     pass
     ### END YOUR CODE
 
     return features
+
 
 def color_position_features(img):
     """ Represents a pixel by its color and position.
@@ -175,13 +226,14 @@ def color_position_features(img):
     """
     H, W, C = img.shape
     color = img_as_float(img)
-    features = np.zeros((H*W, C+2))
+    features = np.zeros((H * W, C + 2))
 
     ### YOUR CODE HERE
     pass
     ### END YOUR CODE
 
     return features
+
 
 ### Quantitative Evaluation
 def compute_accuracy(mask_gt, mask):
@@ -206,6 +258,7 @@ def compute_accuracy(mask_gt, mask):
     ### END YOUR CODE
 
     return accuracy
+
 
 def evaluate_segmentation(mask_gt, segments):
     """ Compare the estimated segmentation with the ground truth.
