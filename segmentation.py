@@ -48,13 +48,17 @@ def kmeans(features, k, num_iters=100):
 
 
 def get_new_cluster_centers(features, features_assignments, no_of_clusters):
-    centers = np.zeros((0, features.shape[1]))
-    for i in range(no_of_clusters):
-        features_in_cluster_i = np.zeros((0, features.shape[1]))
-        for idx, assign in enumerate(features_assignments):
-            if assign == i:
-                features_in_cluster_i = np.vstack((features_in_cluster_i, features[idx]))
-        centers = np.vstack((centers, np.average(features_in_cluster_i, axis=0)))
+    centers_dict = {}
+    for idx, feature in enumerate(features):
+        cluster_i = features_assignments[idx]
+        if cluster_i not in centers_dict:
+            centers_dict[int(cluster_i)] = []
+        centers_dict[cluster_i].append(feature)
+
+    centers = np.zeros((no_of_clusters, features.shape[1]))
+    for cluster in range(no_of_clusters):
+        centers[cluster] = np.average(centers_dict[cluster], axis=0)
+
     return centers
 
 
@@ -113,7 +117,6 @@ def kmeans_fast(features, k, num_iters=100):
     idxs = np.random.choice(N, size=k, replace=False)
     centers = features[idxs]
     assignments = np.zeros(N, dtype=np.uint32)
-
     for n in range(num_iters):
         new_assignements = get_features_assignments_fast(centers, features)
         centers = get_new_cluster_centers(features, new_assignements, k)
@@ -192,11 +195,9 @@ def color_features(img):
     """
     H, W, C = img.shape
     img = img_as_float(img)
-    features = np.zeros((H * W, C))
-
-    ### YOUR CODE HERE
-    pass
-    ### END YOUR CODE
+    features = np.zeros((0, C))
+    for row in img:
+        features = np.vstack((features, row))
 
     return features
 
