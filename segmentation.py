@@ -2,10 +2,8 @@ import numpy
 import numpy as np
 import random
 from matplotlib import pyplot as plt
-
-
-# from scipy.spatial.distance import squareform, pdist, cdist
-# from skimage.util import img_as_float
+from scipy.spatial.distance import squareform, pdist, cdist
+from skimage.util import img_as_float
 
 
 ### Clustering Methods
@@ -117,11 +115,17 @@ def kmeans_fast(features, k, num_iters=100):
     assignments = np.zeros(N, dtype=np.uint32)
 
     for n in range(num_iters):
-        ### YOUR CODE HERE
-        pass
-        ### END YOUR CODE
-
+        new_assignements = get_features_assignments_fast(centers, features)
+        centers = get_new_cluster_centers(features, new_assignements, k)
+        if np.array_equal(new_assignements, assignments):
+            break
+        assignments = new_assignements
     return assignments
+
+
+def get_features_assignments_fast(centers, features):
+    dist_list = cdist(features, centers, 'euclidean')
+    return np.argmin(dist_list, axis=1)
 
 
 def hierarchical_clustering(features, k):
