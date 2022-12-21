@@ -1,8 +1,9 @@
 import numpy
 import numpy as np
 import random
-
 from matplotlib import pyplot as plt
+
+
 # from scipy.spatial.distance import squareform, pdist, cdist
 # from skimage.util import img_as_float
 
@@ -37,33 +38,25 @@ def kmeans(features, k, num_iters=100):
     idxs = np.random.choice(N, size=k, replace=False)
     centers = features[idxs]
     assignments = np.zeros(N, dtype=np.uint32)
-    print(centers)
     for n in range(num_iters):
         new_assignments = get_features_assignments(centers, features)
         centers = get_new_cluster_centers(features, new_assignments, k)
         if np.array_equal(new_assignments, assignments):
             print("Iteration Count: ", n)
             return assignments
-        for i in range(4):
-            cluster_i = features[new_assignments == i]
-            plt.scatter(cluster_i[:, 0], cluster_i[:, 1])
-
-        plt.axis('equal')
-        plt.show()
         assignments = new_assignments
 
     return assignments
 
 
 def get_new_cluster_centers(features, features_assignments, no_of_clusters):
-    centers = np.array([])
-
+    centers = np.zeros((0, features.shape[1]))
     for i in range(no_of_clusters):
-        features_in_cluster_i = np.array([])
+        features_in_cluster_i = np.zeros((0, features.shape[1]))
         for idx, assign in enumerate(features_assignments):
             if assign == i:
-                features_in_cluster_i = np.append(features_in_cluster_i, features[idx])
-        centers = np.append(centers, np.average(features_in_cluster_i, axis=0))
+                features_in_cluster_i = np.vstack((features_in_cluster_i, features[idx]))
+        centers = np.vstack((centers, np.average(features_in_cluster_i, axis=0)))
     return centers
 
 
@@ -81,7 +74,6 @@ def get_nearest_center_idx(centers, data_point) -> int:
     dis_list = []
     for center in centers:
         dis_list.append(get_euclidean_dis(center, data_point))
-
     min_dis = dis_list[0]
     min_idx = 0
     for i, dis in enumerate(dis_list):
@@ -91,7 +83,7 @@ def get_nearest_center_idx(centers, data_point) -> int:
     return min_idx
 
 
-def get_euclidean_dis(center, data_point) -> np.array:
+def get_euclidean_dis(center, data_point):
     return np.linalg.norm(center - data_point)
 
 
