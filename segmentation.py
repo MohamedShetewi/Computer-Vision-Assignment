@@ -40,7 +40,6 @@ def kmeans(features, k, num_iters=100):
         new_assignments = get_features_assignments(centers, features)
         centers = get_new_cluster_centers(features, new_assignments, k)
         if np.array_equal(new_assignments, assignments):
-            print("Iteration Count: ", n)
             return assignments
         assignments = new_assignments
 
@@ -48,18 +47,18 @@ def kmeans(features, k, num_iters=100):
 
 
 def get_new_cluster_centers(features, features_assignments, no_of_clusters):
-    centers_dict = {}
-    for idx, feature in enumerate(features):
-        cluster_i = features_assignments[idx]
-        if cluster_i not in centers_dict:
-            centers_dict[int(cluster_i)] = []
-        centers_dict[cluster_i].append(feature)
+    # centers_dict = {}
+    # for idx, feature in enumerate(features):
+    #     cluster_i = features_assignments[idx]
+    #     if cluster_i not in centers_dict:
+    #         centers_dict[int(cluster_i)] = []
+    #     centers_dict[cluster_i].append(feature)
+    #
+    # centers = np.zeros((no_of_clusters, features.shape[1]))
+    # for cluster in range(no_of_clusters):
+    #     centers[cluster] = np.average(centers_dict[cluster], axis=0)
 
-    centers = np.zeros((no_of_clusters, features.shape[1]))
-    for cluster in range(no_of_clusters):
-        centers[cluster] = np.average(centers_dict[cluster], axis=0)
-
-    return centers
+    return np.array([np.mean(features[features_assignments == k], axis=0) for k in range(no_of_clusters)])
 
 
 def get_features_assignments(centers, features) -> np.array:
@@ -222,13 +221,13 @@ def color_position_features(img):
         features - array of (H * W, C+2)
     """
     H, W, C = img.shape
-    color = img_as_float(img)
+    img = img_as_float(img)
     features = np.zeros((H * W, C + 2))
-
-    ### YOUR CODE HERE
-    pass
-    ### END YOUR CODE
-
+    for row in range(H):
+        for col in range(W):
+            color = img[row][col]
+            features[(row * W) + col] = np.array([color[0], color[1], color[2], row, col])
+    features = (features - features.mean(axis=0)) / features.std(axis=0)
     return features
 
 
@@ -249,12 +248,15 @@ def compute_accuracy(mask_gt, mask):
             bigger number is better, where 1.0 indicates a perfect segmentation.
     """
 
-    accuracy = None
-    ### YOUR CODE HERE
-    pass
-    ### END YOUR CODE
+    accuracy = 0
+    H, W = mask_gt.shape
 
-    return accuracy
+    for row in range(H):
+        for col in range(W):
+            if mask_gt[row][col] == mask[row][col]:
+                accuracy += 1
+
+    return accuracy / (W * H)
 
 
 def evaluate_segmentation(mask_gt, segments):
