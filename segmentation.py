@@ -47,17 +47,6 @@ def kmeans(features, k, num_iters=100):
 
 
 def get_new_cluster_centers(features, features_assignments, no_of_clusters):
-    # centers_dict = {}
-    # for idx, feature in enumerate(features):
-    #     cluster_i = features_assignments[idx]
-    #     if cluster_i not in centers_dict:
-    #         centers_dict[int(cluster_i)] = []
-    #     centers_dict[cluster_i].append(feature)
-    #
-    # centers = np.zeros((no_of_clusters, features.shape[1]))
-    # for cluster in range(no_of_clusters):
-    #     centers[cluster] = np.average(centers_dict[cluster], axis=0)
-
     return np.array([np.mean(features[features_assignments == k], axis=0) for k in range(no_of_clusters)])
 
 
